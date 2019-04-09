@@ -1,0 +1,308 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Django and Web Security Headers</title>
+
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/black.css">
+
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName('head')[0].appendChild(link);
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+
+<section>
+    <h1>Django and Web Security Headers</h1>
+    <h2>Adam Johnson</h2>
+</section>
+
+<section>
+    <h1>Me</h1>
+    <ul>
+        <li>Adam Johnson</li>
+        <li>Django Core Contributor</li>
+        <li>@adamchainz on GitHub &amp; Twitter</li>
+        <li>me@adamj.eu</li>
+    </ul>
+</section>
+
+<section>
+    <h1>Web Security Headers</h1>
+    <ul>
+        <li>Opt-in to more secure behaviour 💪</li>
+        <li>Check them with <strong>Securityheaders.com</strong> 🔍</li>
+    </ul>
+</section>
+
+<section>
+    <img src="img/securityheaders-yahoo.png" alt="Yahoo scores an A+">
+</section>
+
+<section>
+    <img src="img/securityheaders-google.png" alt="Yahoo scores a C">
+</section>
+
+<section>
+    <h1>7 Headers for A+</h1>
+    <ol>
+        <li><code>X-XSS-Protection</code></li>
+        <li><code>Strict-Transport-Security</code></li>
+        <li><code>X-Content-Type-Options</code></li>
+        <li><code>X-Frame-Options</code></li>
+        <li><code>Referrer-Policy</code></li>
+        <li><code>Content-Security-Policy</code></li>
+        <li><code>Feature-Policy</code></li>
+    </ol>
+</section>
+
+<section>
+    <h2>1. <code>X-XSS-Protection</code></h2>
+    <ul>
+        <li>XSS = Cross-Site Scripting 💉</li>
+        <li>Most browsers have XSS Auditors on by default 💂‍♀️</li>
+        <li><code>mode=block</code> to escalate blocking a request to blocking the whole page</li>
+    </ul>
+</section>
+
+<section>
+    <img src="img/x-xss-protection-demo1.png" alt="">
+</section>
+
+<section>
+    <img src="img/x-xss-protection-demo2.png" alt="">
+</section>
+
+<section>
+    <h2>1. <code>X-XSS-Protection</code></h2>
+    <p>Activation in Django:</p>
+    <ol>
+        <li>Have <code>SecurityMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set <code>SECURE_BROWSER_XSS_FILTER = True</code></li>
+    </ol>
+</section>
+
+<section>
+    <h2>2. <code>Strict-Transport-Security</code></h2>
+    <ul>
+        <li>Your site is HTTPS 🔒</li>
+        <li>HTTP ➡ HTTPS redirect is still insecure 🔓</li>
+        <li>Header says "never talk to me on HTTP again" ✋</li>
+        <li>Preload database in browsers</li>
+    </ul>
+</section>
+
+<section>
+    <img src="img/hstspreload-org.png" alt="">
+</section>
+
+<section>
+    <h2>2. <code>Strict-Transport-Security</code></h2>
+    <p>Activation in Django:</p>
+    <ol>
+        <li>Have <code>SecurityMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set <code>SECURE_HSTS_SECONDS</code></li>
+    </ol>
+</section>
+
+<section>
+    <h2>2. <code>Strict-Transport-Security</code></h2>
+    <blockquote>
+        <p>...enabling HSTS carelessly can cause serious, irreversible problems</p>
+    </blockquote>
+    <ul>
+        <li>Ramp up seconds gradually</li>
+        <li>Enable <code>includeSubdomains</code> and <code>preload</code> when you're sure</li>
+    </ul>
+</section>
+
+<section>
+    <h2>3. <code>X-Content-Type-Options</code></h2>
+    <ul>
+        <li>Browser "MIME Sniffing" guesses content type 👃</li>
+        <li>Backfires e.g. user uploaded image interpreted as HTML 😓</li>
+        <li>Header set to 'nosniff' <em>opts out</em> ☝️</li>
+    </ul>
+</section>
+
+<section>
+    <img src="img/mime-sniffing.png" alt="">
+</section>
+
+<section>
+    <h2>3. <code>X-Content-Type-Options</code></h2>
+    <p>
+        Activation in Django:
+    </p>
+    <ul>
+        <li>Have <code>SecurityMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set <code>SECURE_CONTENT_TYPE_NOSNIFF = True</code></li>
+    </ul>
+</section>
+
+<section>
+    <h2>4. <code>X-Frame-Options</code></h2>
+    <ul>
+        <li>Attack: clickjacking 🐁</li>
+        <li>Header tells browser which other sites yours can appear on in an <code>&lt;iframe&gt;</code></li>
+    </ul>
+</section>
+
+
+<section>
+    <p>Troy Hunt's clickjacking demo:</p>
+    <img src="img/clickjacking-demo1.png" alt="">
+</section>
+
+<section>
+    <img src="img/clickjacking-demo2.png" alt="">
+</section>
+
+<section>
+    <img src="img/clickjacking-demo3.png" alt="">
+</section>
+
+<section>
+    <h2>4. <code>X-Frame-Options</code></h2>
+    <p>
+        Activation in Django:
+    </p>
+    <ul>
+        <li>Have <code>XFrameOptionsMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set <code>X_FRAME_OPTIONS = 'DENY'</code></li>
+    </ul>
+</section>
+
+<section>
+    <h2>5. <code>Referrer-Policy</code></h2>
+    <ul>
+        <li>Browsers pass <code>Referer</code> <em>(one R)</em> header on navigation 🎟</li>
+        <li>URI's can leak information! 💧</li>
+        <li>e.g. <code>adamj.eu/illuminati-funding/</code></li>
+        <li>Header <em>(two R's)</em> controls who gets <code>Referer</code> 👀</li>
+    </ul>
+</section>
+
+<section>
+    <h2>5. <code>Referrer-Policy</code></h2>
+    <p>
+        Activation in Django:
+    </p>
+    <ul>
+        <li>Install James Bennett's <br><code>django-referrer-policy</code></li>
+        <li>Add its <code>ReferrerPolicyMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set <code>REFERRER_POLICY</code> to desired value, e.g. <code>'same-origin'</code></li>
+    </ul>
+</section>
+
+<section>
+    <h2>6. <code>Content-Security-Policy</code></h2>
+    <ul>
+        <li>Stop your site including content from any old other site 🦑</li>
+        <li>Strongest way to prevent XSS, clickjacking, and others 🗝</li>
+        <li>Huge topic 🐳</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Example CSP</h2>
+    <code>
+        default-src 'self';<br>
+        img-src *;<br>
+        script-src userscripts.example.com
+    </code>
+</section>
+
+<section>
+    <p>Scott Helme's Demo:</p>
+    <img src="img/csp-demo.png" alt="">
+</section>
+
+<section>
+    <h2>6. <code>Content-Security-Policy</code></h2>
+    <p>
+        Activation in Django:
+    </p>
+    <ul>
+        <li>Install Mozilla's <code>django-csp</code></li>
+        <li>Add its <code>CSPMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set a bunch of settings e.g. <code>CSP_DEFAULT_SRC</code></li>
+    </ul>
+</section>
+
+<section>
+    <h2>6. <code>Content-Security-Policy</code></h2>
+    <ul>
+        <li>Greenfield: easy 😁</li>
+        <li>Existing site: hard 😅</li>
+        <li><a href="https://csp.withgoogle.com/docs/strict-csp.html">csp.withgoogle.com/docs/strict-csp.html</a></li>
+        <li>Report-only mode 📋</li>
+    </ul>
+</section>
+
+<section>
+    <h2>7. <code>Feature-Policy</code></h2>
+    <ul>
+        <li>Bonus! Not needed for A+. 🎁</li>
+        <li>Experimental! 🧪</li>
+        <li>Disable browser features your site or its <code>iframe</code>s shouldn't use, e.g. <code>autoplay</code>, <code>geolocation</code>, <code>camera</code> 🛑</li>
+    </ul>
+</section>
+
+<section>
+    <img src="img/feature-policy-demo.png" alt="">
+</section>
+
+<section>
+    <h2>7. <code>Feature-Policy</code></h2>
+    <p>
+        Activation in Django:
+    </p>
+    <ul>
+        <li>Install my <code>django-feature-policy</code></li>
+        <li>Add its <code>FeaturePolicyMiddleware</code> in <code>MIDDLEWARE</code></li>
+        <li>Set <code>FEATURE_POLICY</code></li>
+    </ul>
+</section>
+
+<section>
+    <h1>🎊 A+ Rating! 💪</h1>
+</section>
+
+<section>
+    <h1>Thank you! 🤗</h1>
+    <ul>
+        <li>Adam Johnson</li>
+        <li>@adamchainz on GitHub &amp; Twitter</li>
+        <li>me@adamj.eu</li>
+        <li><a href="https://github.com/adamchainz/talk-django-and-web-security-headers">github.com/adamchainz/talk-django-and-web-security-headers</a></li>
+    </ul>
+</section>
+
+            </div>
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+            });
+        </script>
+    </body>
+</html>
